@@ -9,33 +9,51 @@ namespace Frontend\Modules\Forum\Engine;
  */
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 
 use Frontend\Core\Engine\Theme as FrontendTheme;
+use Symfony\Component\Routing\Exception\InvalidParameterException;
+
+use Github\Client as GithubClient;
+use Github\Api\Markdown as GithubMarkdown;
+use Parsedown as Parsedown;
 
 class Helper {
 
-    /**
-     * Generate a correct path
-     *
-     * @return string
-     */
-    public static function getPathJS($file, $module)
-    {
+    public static function parseMarkdown($text = null, $type = 'default') {
 
         // variables
-        $fs = new Filesystem();
-        $file = (string) $file;
-        $module = (string) $module;
-        $theme = FrontendTheme::getTheme();
+        $parsedContent = null;
 
-        // get theme
-        $themePath = '/src/Frontend/Themes/' . $theme . '/Core/Js';
-        $filePath = $themePath . $file;
+        // no text given
+        if($text === null) throw new InvalidParameterException('You should provide some markdown text.');
 
-        // check for existence
-        if($fs->exists((PATH_WWW . str_replace(PATH_WWW, '', $filePath)))) return $filePath;
+        // default parse option
+        if($type === 'default') {
 
-        return '/src/Frontend/Modules/' . $module . '/Js' . $file;
+            // create markdown object
+            $parsedown = new Parsedown();
+
+            // set parsedown options
+            $parsedown->setBreaksEnabled(true);
+            $parsedown->setMarkupEscaped(true);
+
+            // parse content
+            $parsedContent = $parsedown->text($text);
+
+        } elseif($type === 'github') {
+
+            // create github client
+            $client = new GithubClient();
+
+            // init api
+            $api = new GithubMarkdown($client);
+
+            // parse content ('markdown' = straight markdown, 'gfm' = github flavoured)
+            $parsedContent = $api->render($text, 'gfm', null);
+        }
+
+        return $parsedContent;
     }
 
 }

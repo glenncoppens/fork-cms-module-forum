@@ -22,12 +22,14 @@
 						{$txtPost} {$txtPostError}
 					</p>
 					<p>
-						<input class="inputSubmit" type="submit" name="add_post" value="{$msgPost|ucfirst}" />
+                        <a href="#" id="preview-button" class="btn">{$msgPreview|ucfirst}</a>&nbsp;
+                        <input class="inputSubmit" type="submit" name="add_post" value="{$msgPost|ucfirst}" />
 					</p>
 				{/form:addForm}
 
                 <section>
                     <h3>Preview</h3>
+                    <div id="preview-error"></div>
                     <div id="preview">
 
                     </div>
