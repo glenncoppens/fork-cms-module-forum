@@ -767,37 +767,17 @@ class Model implements FrontendTagsInterface
     public static function getRevision($URL, $revision)
     {
         $return = (array) FrontendModel::getContainer()->get('database')->getRecord(
-            'SELECT i.id, i.revision_id, i.language, i.title, i.text, i.image,
+            'SELECT i.id, i.revision_id, i.title, i.text,
              c.title AS category_title, m2.url AS category_url,
              UNIX_TIMESTAMP(i.publish_on) AS publish_on, i.profile_id,
-             i.allow_comments,
-             m.keywords AS meta_keywords, m.keywords_overwrite AS meta_keywords_overwrite,
-             m.description AS meta_description, m.description_overwrite AS meta_description_overwrite,
-             m.title AS meta_title, m.title_overwrite AS meta_title_overwrite,
-             m.url,
-             m.data AS meta_data
+             i.allow_comments, i.url
              FROM forum_posts AS i
              INNER JOIN forum_categories AS c ON i.category_id = c.id
-             INNER JOIN meta AS m ON i.meta_id = m.id
              INNER JOIN meta AS m2 ON c.meta_id = m2.id
-             WHERE i.language = ? AND i.revision_id = ? AND m.url = ?
+             WHERE i.revision_id = ? AND i.url = ?
              LIMIT 1',
-            array(FRONTEND_LANGUAGE, (int) $revision, (string) $URL)
+            array((int) $revision, (string) $URL)
         );
-
-        // unserialize
-        if (isset($return['meta_data'])) {
-            $return['meta_data'] = @unserialize($return['meta_data']);
-        }
-
-        // image?
-        if (isset($return['image'])) {
-            $folders = FrontendModel::getThumbnailFolders(FRONTEND_FILES_PATH . '/Forum/Images', true);
-
-            foreach ($folders as $folder) {
-                $return['image_' . $folder['dirname']] = $folder['url'] . '/' . $folder['dirname'] . '/' . $return['image'];
-            }
-        }
 
         // return
         return $return;

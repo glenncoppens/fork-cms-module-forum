@@ -2,13 +2,6 @@
 
 namespace Backend\Modules\Forum\Actions;
 
-/*
- * This file is part of Fork CMS.
- *
- * For the full copyright and license information, please view the license
- * file that was distributed with this source code.
- */
-
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -21,18 +14,16 @@ use Backend\Core\Engine\Language as BL;
 use Backend\Core\Engine\DataGridDB as BackendDataGridDB;
 use Backend\Core\Engine\DataGridFunctions as BackendDataGridFunctions;
 use Backend\Modules\Forum\Engine\Model as BackendForumModel;
+use Backend\Modules\Forum\Engine\Helper as BackendForumHelper;
 use Backend\Modules\Search\Engine\Model as BackendSearchModel;
 use Backend\Modules\Tags\Engine\Model as BackendTagsModel;
-use Backend\Modules\Users\Engine\Model as BackendUsersModel;
+use Backend\Modules\Profiles\Engine\Model as BackendProfilesModel;
+
 
 /**
  * This is the edit-action, it will display a form to edit an existing item
  *
- * @author Dave Lens <dave.lens@netlash.com>
- * @author Davy Hellemans <davy.hellemans@netlash.com>
- * @author Matthias Mullie <forkcms@mullie.eu>
- * @author Tijs Verkoyen <tijs@sumocoders.be>
- * @author Jelmer Snoeck <jelmer@siphoc.com>
+ * @author Glenn Coppens <glenn.coppens@gmail.com>
  */
 class Edit extends BackendBaseActionEdit
 {
@@ -51,11 +42,11 @@ class Edit extends BackendBaseActionEdit
     private $dgDrafts;
 
     /**
-     * Is the image field allowed?
+     * Profile array
      *
-     * @var bool
+     * @var array
      */
-    protected $imageIsAllowed = true;
+    protected $profile;
 
     /**
      * Execute the action
@@ -76,7 +67,6 @@ class Edit extends BackendBaseActionEdit
             }
 
             $this->getData();
-            $this->loadDrafts();
             $this->loadRevisions();
             $this->loadForm();
             $this->validateForm();
@@ -95,7 +85,8 @@ class Edit extends BackendBaseActionEdit
     private function getData()
     {
         $this->record = (array) BackendForumModel::get($this->id);
-        $this->imageIsAllowed = BackendModel::getModuleSetting($this->URL->getModule(), 'show_image_form', true);
+
+
 
         // is there a revision specified?
         $revisionToLoad = $this->getParameter('revision', 'int');
@@ -109,82 +100,14 @@ class Edit extends BackendBaseActionEdit
             $this->tpl->assign('usingRevision', true);
         }
 
-        // is there a revision specified?
-        $draftToLoad = $this->getParameter('draft', 'int');
-
-        // if this is a valid revision
-        if ($draftToLoad !== null) {
-            // overwrite the current record
-            $this->record = (array) BackendForumModel::getRevision($this->id, $draftToLoad);
-
-            // show warning
-            $this->tpl->assign('usingDraft', true);
-
-            // assign draft
-            $this->tpl->assign('draftId', $draftToLoad);
-        }
-
         // no item found, throw an exceptions, because somebody is fucking with our URL
         if (empty($this->record)) {
             $this->redirect(BackendModel::createURLForAction('Index') . '&error=non-existing');
         }
-    }
 
-    /**
-     * Load the datagrid with drafts
-     */
-    private function loadDrafts()
-    {
-        // create datagrid
-        $this->dgDrafts = new BackendDataGridDB(
-            BackendForumModel::QRY_DATAGRID_BROWSE_SPECIFIC_DRAFTS,
-            array('draft', $this->record['id'], BL::getWorkingLanguage())
-        );
-
-        // hide columns
-        $this->dgDrafts->setColumnsHidden(array('id', 'revision_id'));
-
-        // disable paging
-        $this->dgDrafts->setPaging(false);
-
-        // set headers
-        $this->dgDrafts->setHeaderLabels(array(
-            'user_id' => \SpoonFilter::ucfirst(BL::lbl('By')),
-            'edited_on' => \SpoonFilter::ucfirst(BL::lbl('LastEditedOn'))
-        ));
-
-        // set column-functions
-        $this->dgDrafts->setColumnFunction(
-            array(new BackendDataGridFunctions(), 'getUser'),
-            array('[user_id]'),
-            'user_id'
-        );
-        $this->dgDrafts->setColumnFunction(
-            array(new BackendDataGridFunctions(), 'getTimeAgo'),
-            array('[edited_on]'),
-            'edited_on'
-        );
-
-        // our JS needs to know an id, so we can highlight it
-        $this->dgDrafts->setRowAttributes(array('id' => 'row-[revision_id]'));
-
-        // check if this action is allowed
-        if (BackendAuthentication::isAllowedAction('Edit')) {
-            // set column URLs
-            $this->dgDrafts->setColumnURL(
-                'title',
-                BackendModel::createURLForAction('Edit') . '&amp;id=[id]&amp;draft=[revision_id]'
-            );
-
-            // add use column
-            $this->dgDrafts->addColumn(
-                'use_draft',
-                null,
-                BL::lbl('UseThisDraft'),
-                BackendModel::createURLForAction('Edit') . '&amp;id=[id]&amp;draft=[revision_id]',
-                BL::lbl('UseThisDraft')
-            );
-        }
+        // get the profile
+        $this->profile = (array) BackendProfilesModel::get($this->record['profile_id']);
+        $this->record['profile'] = $this->profile;
     }
 
     /**
@@ -205,15 +128,15 @@ class Edit extends BackendBaseActionEdit
 
         // create elements
         $this->frm->addText('title', $this->record['title'], null, 'inputText title', 'inputTextError title');
-        $this->frm->addEditor('text', $this->record['text']);
-        $this->frm->addEditor('introduction', $this->record['introduction']);
+        $this->frm
+            ->addTextarea('text', $this->record['text'], null, null, true)
+            ->setAttributes(array('style' => 'width: 100%;'));
         $this->frm->addRadiobutton('hidden', $rbtHiddenValues, $this->record['hidden']);
         $this->frm->addCheckbox('allow_comments', ($this->record['allow_comments'] === 'Y' ? true : false));
         $this->frm->addDropdown('category_id', $categories, $this->record['category_id']);
         if (count($categories) != 2) {
             $this->frm->getField('category_id')->setDefaultElement('');
         }
-        $this->frm->addDropdown('user_id', BackendUsersModel::getUsers(), $this->record['user_id']);
         $this->frm->addText(
             'tags',
             BackendTagsModel::getTags($this->URL->getModule(), $this->record['id']),
@@ -223,16 +146,6 @@ class Edit extends BackendBaseActionEdit
         );
         $this->frm->addDate('publish_on_date', $this->record['publish_on']);
         $this->frm->addTime('publish_on_time', date('H:i', $this->record['publish_on']));
-        if ($this->imageIsAllowed) {
-            $this->frm->addImage('image');
-            $this->frm->addCheckbox('delete_image');
-        }
-
-        // meta object
-        $this->meta = new BackendMeta($this->frm, $this->record['meta_id'], 'title', true);
-
-        // set callback for generating a unique URL
-        $this->meta->setUrlCallback('Backend\Modules\Forum\Engine\Model', 'getURL', array($this->record['id']));
     }
 
     /**
@@ -243,7 +156,7 @@ class Edit extends BackendBaseActionEdit
         // create datagrid
         $this->dgRevisions = new BackendDataGridDB(
             BackendForumModel::QRY_DATAGRID_BROWSE_REVISIONS,
-            array('archived', $this->record['id'], BL::getWorkingLanguage())
+            array('archived', $this->record['id'])
         );
 
         // hide columns
@@ -254,15 +167,15 @@ class Edit extends BackendBaseActionEdit
 
         // set headers
         $this->dgRevisions->setHeaderLabels(array(
-            'user_id' => \SpoonFilter::ucfirst(BL::lbl('By')),
+            'profile_id' => \SpoonFilter::ucfirst(BL::lbl('By')),
             'edited_on' => \SpoonFilter::ucfirst(BL::lbl('LastEditedOn'))
         ));
 
         // set column-functions
         $this->dgRevisions->setColumnFunction(
-            array(new BackendDataGridFunctions(), 'getUser'),
-            array('[user_id]'),
-            'user_id'
+            array(new BackendForumHelper(), 'getProfileProperty'),
+            array('[profile_id]', 'email'),
+            'profile_id'
         );
         $this->dgRevisions->setColumnFunction(
             array(new BackendDataGridFunctions(), 'getTimeAgo'),
@@ -305,18 +218,12 @@ class Edit extends BackendBaseActionEdit
             $this->tpl->assign('detailURL', SITE_URL . $url);
         }
 
-        // fetch proper slug
-        $this->record['url'] = $this->meta->getURL();
-
         // assign the active record and additional variables
         $this->tpl->assign('item', $this->record);
         $this->tpl->assign('status', BL::lbl(\SpoonFilter::ucfirst($this->record['status'])));
 
         // assign revisions-datagrid
         $this->tpl->assign('revisions', ($this->dgRevisions->getNumResults() != 0) ? $this->dgRevisions->getContent() : false);
-        $this->tpl->assign('drafts', ($this->dgDrafts->getNumResults() != 0) ? $this->dgDrafts->getContent() : false);
-
-        $this->tpl->assign('imageIsAllowed', $this->imageIsAllowed);
 
         // assign category
         if ($this->categoryId !== null) {
@@ -332,7 +239,7 @@ class Edit extends BackendBaseActionEdit
         // is the form submitted?
         if ($this->frm->isSubmitted()) {
             // get the status
-            $status = \SpoonFilter::getPostValue('status', array('active', 'draft'), 'active');
+            $status = \SpoonFilter::getPostValue('status', array('active'), 'active');
 
             // cleanup the submitted fields, ignore fields that were added by hackers
             $this->frm->cleanupFields();
@@ -344,22 +251,17 @@ class Edit extends BackendBaseActionEdit
             $this->frm->getField('publish_on_time')->isValid(BL::err('TimeIsInvalid'));
             $this->frm->getField('category_id')->isFilled(BL::err('FieldIsRequired'));
 
-            // validate meta
-            $this->meta->validate();
-
             // no errors?
             if ($this->frm->isCorrect()) {
                 // build item
                 $item['id'] = $this->id;
-                $item['meta_id'] = $this->meta->save();
 
                 // this is used to let our model know the status (active, archive, draft) of the edited item
                 $item['revision_id'] = $this->record['revision_id'];
                 $item['category_id'] = (int) $this->frm->getField('category_id')->getValue();
-                $item['user_id'] = $this->frm->getField('user_id')->getValue();
-                $item['language'] = BL::getWorkingLanguage();
+                //$item['user_id'] = $this->frm->getField('user_id')->getValue();
+                //$item['language'] = BL::getWorkingLanguage();
                 $item['title'] = $this->frm->getField('title')->getValue();
-                $item['introduction'] = $this->frm->getField('introduction')->getValue();
                 $item['text'] = $this->frm->getField('text')->getValue();
                 $item['publish_on'] = BackendModel::getUTCDate(
                     null,
@@ -372,68 +274,8 @@ class Edit extends BackendBaseActionEdit
                 $item['hidden'] = $this->frm->getField('hidden')->getValue();
                 $item['allow_comments'] = $this->frm->getField('allow_comments')->getChecked() ? 'Y' : 'N';
                 $item['status'] = $status;
-
-                if ($this->imageIsAllowed) {
-                    $item['image'] = $this->record['image'];
-
-                    // the image path
-                    $imagePath = FRONTEND_FILES_PATH . '/forum/images';
-
-                    // create folders if needed
-                    $fs = new Filesystem();
-                    if (!$fs->exists($imagePath . '/source')) {
-                        $fs->mkdir($imagePath . '/source');
-                    }
-                    if (!$fs->exists($imagePath . '/128x128')) {
-                        $fs->mkdir($imagePath . '/128x128');
-                    }
-
-                    // if the image should be deleted
-                    if ($this->frm->getField('delete_image')->isChecked()) {
-                        $filename = $imagePath . '/source/' . $item['image'];
-                        if (is_file($filename)) {
-                            // delete the image
-                            $fs->remove($filename);
-                            BackendModel::deleteThumbnails($imagePath, $item['image']);
-                        }
-
-                        // reset the name
-                        $item['image'] = null;
-                    }
-
-                    // new image given?
-                    if ($this->frm->getField('image')->isFilled()) {
-                        $filename = $imagePath . '/source/' . $this->record['image'];
-                        if (is_file($filename)) {
-                            $fs->remove($filename);
-                            BackendModel::deleteThumbnails($imagePath, $this->record['image']);
-                        }
-
-                        // build the image name
-                        $item['image'] = $this->meta->getURL() . '-' . BL::getWorkingLanguage() . '.' . $this->frm->getField('image')->getExtension();
-
-                        // upload the image & generate thumbnails
-                        $this->frm->getField('image')->generateThumbnails($imagePath, $item['image']);
-                    } elseif ($item['image'] != null) {
-                        // rename the old image
-                        $image = new File($imagePath . '/source/' . $item['image']);
-                        $newName = $this->meta->getURL() . '-' . BL::getWorkingLanguage() . '.' . $image->getExtension();
-
-                        // only change the name if there is a difference
-                        if ($newName != $item['image']) {
-                            // loop folders
-                            foreach (BackendModel::getThumbnailFolders($imagePath, true) as $folder) {
-                                // move the old file to the new name
-                                $fs->rename($folder['path'] . '/' . $item['image'], $folder['path'] . '/' . $newName);
-                            }
-
-                            // assign the new name to the database
-                            $item['image'] = $newName;
-                        }
-                    }
-                } else {
-                    $item['image'] = null;
-                }
+                $item['profile_id'] = $this->profile['id'];
+                $item['url'] = $this->record['url'];
 
                 // update the item
                 $item['revision_id'] = BackendForumModel::update($item);
@@ -458,24 +300,18 @@ class Edit extends BackendBaseActionEdit
                     );
 
                     // ping
-                    if (BackendModel::getModuleSetting($this->URL->getModule(), 'ping_services', false)) {
-                        BackendModel::ping(
-                            SITE_URL .
-                            BackendModel::getURLForBlock($this->URL->getModule(), 'detail') .
-                            '/' . $this->meta->getURL()
-                        );
-                    }
+//                    if (BackendModel::getModuleSetting($this->URL->getModule(), 'ping_services', false)) {
+//                        BackendModel::ping(
+//                            SITE_URL .
+//                            BackendModel::getURLForBlock($this->URL->getModule(), 'detail') .
+//                            '/' . $item['url']
+//                        );
+//                    }
 
                     // build URL
                     $redirectUrl = BackendModel::createURLForAction('Index') .
                                    '&report=edited&var=' . urlencode($item['title']) .
                                    '&id=' . $this->id . '&highlight=row-' . $item['revision_id'];
-                } elseif ($item['status'] == 'draft') {
-                    // draft: everything is saved, so redirect to the edit action
-                    $redirectUrl = BackendModel::createURLForAction('Edit') .
-                                   '&report=saved-as-draft&var=' . urlencode($item['title']) .
-                                   '&id=' . $item['id'] . '&draft=' . $item['revision_id'] .
-                                   '&highlight=row-' . $item['revision_id'];
                 }
 
                 // append to redirect URL

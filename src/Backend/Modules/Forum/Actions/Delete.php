@@ -2,13 +2,6 @@
 
 namespace Backend\Modules\Forum\Actions;
 
-/*
- * This file is part of Fork CMS.
- *
- * For the full copyright and license information, please view the license
- * file that was distributed with this source code.
- */
-
 use Backend\Core\Engine\Base\ActionDelete as BackendBaseActionDelete;
 use Backend\Core\Engine\Model as BackendModel;
 use Backend\Modules\Forum\Engine\Model as BackendForumModel;
@@ -17,9 +10,7 @@ use Backend\Modules\Search\Engine\Model as BackendSearchModel;
 /**
  * This action will delete a forumpost
  *
- * @author Dave Lens <dave.lens@netlash.com>
- * @author Davy Hellemans <davy.hellemans@netlash.com>
- * @author Tijs Verkoyen <tijs@sumocoders.be>
+ * @author Glenn Coppens <glenn.coppens@gmail.com>
  */
 class Delete extends BackendBaseActionDelete
 {
@@ -54,9 +45,6 @@ class Delete extends BackendBaseActionDelete
 
             // delete item
             BackendForumModel::delete($this->id);
-
-            // delete the image
-            BackendModel::deleteThumbnails(FRONTEND_FILES_PATH . '/forum/images', $this->record['image']);
 
             // trigger event
             BackendModel::triggerEvent($this->getModule(), 'after_delete', array('id' => $this->id));

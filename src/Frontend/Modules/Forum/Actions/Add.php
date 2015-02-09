@@ -157,18 +157,11 @@ class Add extends FrontendBaseBlock
         		$this->url = CommonUri::getUrl($fields['title']->getValue());
         		$this->url = FrontendForumModel::getUniqueUrl($this->url);
 
-                // parse markdown
-                $parsedown = new Parsedown();
-                $parsedown->setBreaksEnabled(true);
-                $markdown = $parsedown->text($fields['post']->getValue());
-//                \Spoon::dump(\Spoonfilter::htmlentities($markdown));
-
     			// create post item
     			$post = array(
     				'id' => FrontendForumModel::getMaximumId() + 1,
     				'title' => $fields['title']->getValue(),
     				'text' => $fields['post']->getValue(),
-//                    'text' => \SpoonFilter::htmlentities($markdown),
     				'profile_id' => $this->profile->getId(),
                     'category_id' => 1,
     				'url' => $this->url,
@@ -183,9 +176,6 @@ class Add extends FrontendBaseBlock
 
 				// insert post
 				$post['revision_id'] = FrontendForumModel::insertPost($post);
-
-                // invalidate cache
-                FrontendForumHelper::invalidateFrontendCache('Forum');
 
                 // redirect
                 $this->redirect(FrontendNavigation::getURLForBlock('Forum'));

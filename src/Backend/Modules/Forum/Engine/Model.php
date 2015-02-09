@@ -2,13 +2,6 @@
 
 namespace Backend\Modules\Forum\Engine;
 
-/*
- * This file is part of Fork CMS.
- *
- * For the full copyright and license information, please view the license
- * file that was distributed with this source code.
- */
-
 use Backend\Core\Engine\Exception;
 use Backend\Core\Engine\Authentication as BackendAuthentication;
 use Backend\Core\Engine\Model as BackendModel;
@@ -90,13 +83,13 @@ class Model
     const QRY_DATAGRID_BROWSE_REVISIONS =
         'SELECT i.id, i.revision_id, i.title, UNIX_TIMESTAMP(i.edited_on) AS edited_on, i.profile_id
          FROM forum_posts AS i
-         WHERE i.status = ? AND i.id = ? AND i.language = ?
+         WHERE i.status = ? AND i.id = ?
          ORDER BY i.edited_on DESC';
 
     const QRY_DATAGRID_BROWSE_SPECIFIC_DRAFTS =
         'SELECT i.id, i.revision_id, i.title, UNIX_TIMESTAMP(i.edited_on) AS edited_on, i.profile_id
          FROM forum_posts AS i
-         WHERE i.status = ? AND i.id = ? AND i.language = ?
+         WHERE i.status = ? AND i.id = ?
          ORDER BY i.edited_on DESC';
 
     /**
@@ -155,29 +148,16 @@ class Model
         // get db
         $db = BackendModel::getContainer()->get('database');
 
-        // get used meta ids
-        $metaIds = (array) $db->getColumn(
-            'SELECT meta_id
-             FROM forum_posts AS p
-             WHERE id IN (' . implode(', ', $idPlaceHolders) . ') AND language = ?',
-            array_merge($ids, array(BL::getWorkingLanguage()))
-        );
-
-        // delete meta
-        if (!empty($metaIds)) {
-            $db->delete('meta', 'id IN (' . implode(',', $metaIds) . ')');
-        }
-
         // delete records
         $db->delete(
             'forum_posts',
-            'id IN (' . implode(', ', $idPlaceHolders) . ') AND language = ?',
-            array_merge($ids, array(BL::getWorkingLanguage()))
+            'id IN (' . implode(', ', $idPlaceHolders) . ')',
+            $ids
         );
         $db->delete(
             'forum_comments',
-            'post_id IN (' . implode(', ', $idPlaceHolders) . ') AND language = ?',
-            array_merge($ids, array(BL::getWorkingLanguage()))
+            'post_id IN (' . implode(', ', $idPlaceHolders) . ')',
+            $ids
         );
 
         // delete tags
@@ -313,8 +293,8 @@ class Model
         return (bool) BackendModel::getContainer()->get('database')->getVar(
             'SELECT i.id
              FROM forum_posts AS i
-             WHERE i.id = ? AND i.language = ?',
-            array((int) $id, BL::getWorkingLanguage())
+             WHERE i.id = ?',
+            array((int) $id)
         );
     }
 
@@ -361,12 +341,11 @@ class Model
     public static function get($id)
     {
         return (array) BackendModel::getContainer()->get('database')->getRecord(
-            'SELECT i.*, UNIX_TIMESTAMP(i.publish_on) AS publish_on, UNIX_TIMESTAMP(i.created_on) AS created_on, UNIX_TIMESTAMP(i.edited_on) AS edited_on, m.url
+            'SELECT i.*, UNIX_TIMESTAMP(i.publish_on) AS publish_on, UNIX_TIMESTAMP(i.created_on) AS created_on, UNIX_TIMESTAMP(i.edited_on) AS edited_on, i.url
              FROM forum_posts AS i
-             INNER JOIN meta AS m ON m.id = i.meta_id
-             WHERE i.id = ? AND (i.status = ? OR i.status = ?) AND i.language = ?
+             WHERE i.id = ? AND (i.status = ? OR i.status = ?)
              ORDER BY i.revision_id DESC',
-            array((int) $id, 'active', 'draft', BL::getWorkingLanguage())
+            array((int) $id, 'active', 'draft')
         );
     }
 
@@ -608,9 +587,8 @@ class Model
     public static function getRevision($id, $revisionId)
     {
         return (array) BackendModel::getContainer()->get('database')->getRecord(
-            'SELECT i.*, UNIX_TIMESTAMP(i.publish_on) AS publish_on, UNIX_TIMESTAMP(i.created_on) AS created_on, UNIX_TIMESTAMP(i.edited_on) AS edited_on, m.url
+            'SELECT i.*, UNIX_TIMESTAMP(i.publish_on) AS publish_on, UNIX_TIMESTAMP(i.created_on) AS created_on, UNIX_TIMESTAMP(i.edited_on) AS edited_on, i.url
              FROM forum_posts AS i
-             INNER JOIN meta AS m ON m.id = i.meta_id
              WHERE i.id = ? AND i.revision_id = ?',
             array((int) $id, (int) $revisionId)
         );
@@ -962,10 +940,10 @@ class Model
         $commentCounts = (array) $db->getPairs(
             'SELECT i.post_id, COUNT(i.id) AS comment_count
              FROM forum_comments AS i
-             INNER JOIN forum_posts AS p ON i.post_id = p.id AND i.language = p.language
-             WHERE i.status = ? AND i.post_id IN (' . implode(',', $ids) . ') AND i.language = ? AND p.status = ?
+             INNER JOIN forum_posts AS p ON i.post_id = p.id
+             WHERE i.status = ? AND i.post_id IN (' . implode(',', $ids) . ') AND p.status = ?
              GROUP BY i.post_id',
-            array('published', BL::getWorkingLanguage(), 'active')
+            array('published', 'active')
         );
 
         foreach ($ids as $id) {
@@ -976,8 +954,8 @@ class Model
             $db->update(
                 'forum_posts',
                 array('num_comments' => $count),
-                'id = ? AND language = ?',
-                array($id, BL::getWorkingLanguage())
+                'id = ?',
+                array($id)
             );
         }
 
@@ -1032,10 +1010,10 @@ class Model
         $revisionIdsToKeep = (array) BackendModel::getContainer()->get('database')->getColumn(
             'SELECT i.revision_id
              FROM forum_posts AS i
-             WHERE i.id = ? AND i.status = ? AND i.language = ?
+             WHERE i.id = ? AND i.status = ?
              ORDER BY i.edited_on DESC
              LIMIT ?',
-            array($item['id'], $archiveType, BL::getWorkingLanguage(), $rowsToKeep)
+            array($item['id'], $archiveType, $rowsToKeep)
         );
 
         // delete other revisions
