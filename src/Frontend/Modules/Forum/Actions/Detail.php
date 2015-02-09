@@ -155,13 +155,12 @@ class Detail extends FrontendBaseBlock
         $this->addJSData('Settings', array('Action' => $this->getAction()));
 
         // add js scripts
-        $this->addJS('marked-0.3.3/marked.min.js', false);
         $this->addJS('highlight-8.4/highlight.pack.js', false);
         $this->addJS('taboverride-4.0.2/taboverride.js', false);
         $this->addJS('Purify.js', false);
 
         // highlight theme
-        $this->addCSS('highlight-8.4/styles/monokai_sublime.css', false);
+        $this->addCSS('highlight-8.4/styles/github.css', false);
 
         // parse the post markdown
         $pd = new Parsedown();

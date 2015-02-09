@@ -17,9 +17,9 @@ use Frontend\Core\Engine\Form as FrontendForm;
 use Frontend\Core\Engine\Language as FL;
 use Frontend\Core\Engine\Model as FrontendModel;
 use Frontend\Core\Engine\Navigation as FrontendNavigation;
-use Frontend\Modules\Forum\Engine\Model as FrontendForumModel;
 use Frontend\Modules\Tags\Engine\Model as FrontendTagsModel;
 use Frontend\Modules\Profiles\Engine\Authentication as FrontendProfilesAuthentication;
+use Frontend\Modules\Forum\Engine\Model as FrontendForumModel;
 use Frontend\Modules\Forum\Engine\Helper as FrontendForumHelper;
 
 use \Parsedown as Parsedown;
@@ -121,7 +121,6 @@ class Add extends FrontendBaseBlock
         $this->addJSData('Settings', array('Action' => $this->getAction()));
 
         // add js
-        $this->addJS('marked-0.3.3/marked.min.js', false);
         $this->addJS('highlight-8.4/highlight.pack.js', false);
         $this->addJS('taboverride-4.0.2/taboverride.js', false);
         $this->addJS('Purify.js', false);
@@ -185,11 +184,11 @@ class Add extends FrontendBaseBlock
 				// insert post
 				$post['revision_id'] = FrontendForumModel::insertPost($post);
 
-                $this->redirect(
-                    FrontendNavigation::getURLForBlock(
-                    'Forum',
-                    'Index'
-                ));
+                // invalidate cache
+                FrontendForumHelper::invalidateFrontendCache('Forum');
+
+                // redirect
+                $this->redirect(FrontendNavigation::getURLForBlock('Forum'));
 
     			
 //        		\Spoon::dump($post);

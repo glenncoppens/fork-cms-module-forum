@@ -31,36 +31,10 @@ jsFrontend.forum =
         // init libraries
         jsFrontend.forum.initHighlight();
         jsFrontend.forum.initPurify();
-        jsFrontend.forum.initMarked();
         jsFrontend.forum.initTaboverride(jsFrontend.forum.textElement);
 
         // bind preview event
         jsFrontend.forum.bindPreview(jsFrontend.forum.textElement, jsFrontend.forum.previewElement);
-    },
-
-    initMarked: function() {
-
-        if (jsFrontend.forum.marked == null) {
-
-            // set instance
-            jsFrontend.forum.marked = marked;
-
-            // set options
-            jsFrontend.forum.marked.setOptions({
-                renderer: new jsFrontend.forum.marked.Renderer(),
-                gfm: true,
-                tables: true,
-                breaks: true,
-                pedantic: false,
-                sanitize: true,
-                smartLists: true,
-                smartypants: false,
-                highlight: function(code){
-                    // code = jsFrontend.forum.purify.sanitize(code);
-                    return jsFrontend.forum.highlight.highlightAuto(code).value;
-                }
-            });
-        }
     },
 
     initHighlight: function() {
@@ -95,14 +69,67 @@ jsFrontend.forum =
     },
 
     bindPreview: function($textElement, $previewElement) {
+        $previewButton = $('#preview-button');
+        $previewError = $('#preview-error');
+        $previewError.hide();
+        $previewElement.hide();
 
-        $textElement.keyup(function(){
+        $previewButton.click(function(e) {
+            e.preventDefault();
 
-            // show preview
-            $previewElement.html(jsFrontend.forum.marked($textElement.val()));
+            // make the async parsedown call
+            $.ajax(
+            {
+                data:
+                {
+                    fork: { module: 'Forum', action: 'ParseMarkdown' },
+                    text: $textElement.val(),
+                    type: 'github' // types are: 'default' or 'github'
+                },
+                success: function(json, textStatus)
+                {
+                    if(json.code != 200)
+                    {
+                        // show error if needed
+                        if(jsFrontend.debug) alert(textStatus);
 
-            // FIX/TWEAK: add hljs class to each code block
-            $previewElement.find('code').addClass('hljs');
+                        // show error message
+                        $previewError.html(jsFrontend.locale.msg('PreviewError'));
+                    }
+                    else
+                    {
+                        // get parsed data
+                        var parsed = json.data;
+
+                        // show preview
+                        $previewElement.html(parsed);
+
+                        // highlight code blocks
+                        $previewElement.find('pre code').each(function(i, code) {
+                            $(code).addClass('hljs');
+                            jsFrontend.forum.highlight.highlightBlock( code );
+                        });
+
+                        // show preview
+                        $previewElement.show();
+
+                        // hide error message
+                        $previewError.hide();
+                    }
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+
+                    // set message
+                    $previewError.html(jsFrontend.locale.msg('PreviewError'));
+
+                    // hide preview
+                    $previewElement.hide();
+
+                    // show error message
+                    $previewError.show();
+                }
+
+            });
         });
     },
 
