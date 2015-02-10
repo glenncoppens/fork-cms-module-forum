@@ -84,7 +84,6 @@ class Add extends FrontendBaseBlock
                 307
             );
         }
-
     }
 
     /**

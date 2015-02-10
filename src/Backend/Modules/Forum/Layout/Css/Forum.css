@@ -1,0 +1,10 @@
+#text {
+    width: 99.5% !important;
+    min-height: 300px;
+}
+
+#preview {
+    width: 738px !important;
+    overflow-x: scroll;
+    min-height: 300px;
+}

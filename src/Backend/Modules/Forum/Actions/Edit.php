@@ -229,6 +229,14 @@ class Edit extends BackendBaseActionEdit
         if ($this->categoryId !== null) {
             $this->tpl->assign('categoryId', $this->categoryId);
         }
+
+        // add js
+        $this->header->addJS('/src/Frontend/Modules/Forum/Js/highlight-8.4/highlight.pack.js', $this->getModule(), false, true);
+        $this->header->addJS('/src/Frontend/Modules/Forum/Js/taboverride-4.0.2/taboverride.js', $this->getModule(), false, true);
+        $this->header->addJS('/src/Frontend/Modules/Forum/Js/Purify.js', $this->getModule(), false, true);
+
+        // highlight theme
+        $this->header->addCSS('/src/Frontend/Modules/Forum/Layout/Css/highlight-8.4/styles/github.css', $this->getModule(), true, false);
     }
 
     /**

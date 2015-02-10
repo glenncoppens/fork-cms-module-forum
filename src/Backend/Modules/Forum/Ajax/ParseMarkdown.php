@@ -1,12 +1,12 @@
 <?php
 
-namespace Frontend\Modules\Forum\Ajax;
+namespace Backend\Modules\Forum\Ajax;
 
-use Frontend\Core\Engine\Base\AjaxAction as FrontendBaseAJAXAction;
-use Frontend\Core\Engine\Language as BL;
-use Frontend\Modules\Forum\Engine\Model as FrontendForumModel;
+use Backend\Core\Engine\Base\AjaxAction as BackendBaseAJAXAction;
+use Backend\Core\Engine\Language as BL;
+use Backend\Modules\Forum\Engine\Model as BackendForumModel;
 
-use Frontend\Modules\Forum\Engine\Helper as FrontendForumHelper;
+use Backend\Modules\Forum\Engine\Helper as BackendForumHelper;
 
 
 /**
@@ -14,7 +14,7 @@ use Frontend\Modules\Forum\Engine\Helper as FrontendForumHelper;
  *
  * @author Glenn Coppens <glenn.coppens@gmail.com>
  */
-class ParseMarkdown extends FrontendBaseAJAXAction
+class ParseMarkdown extends BackendBaseAJAXAction
 {
     /**
      * Execute the action
@@ -34,7 +34,7 @@ class ParseMarkdown extends FrontendBaseAJAXAction
         if ($text !== null) {
 
             // parse text
-            $helper = new FrontendForumHelper();
+            $helper = new BackendForumHelper();
             $parsedContent = $helper->parseMarkdown($text, $type);
 
             // output

@@ -17,6 +17,7 @@ use Frontend\Core\Engine\Language as FL;
 use Frontend\Core\Engine\Model as FrontendModel;
 use Frontend\Core\Engine\Navigation as FrontendNavigation;
 use Frontend\Modules\Forum\Engine\Model as FrontendForumModel;
+use Frontend\Modules\Forum\Engine\Helper as FrontendForumHelper;
 use Frontend\Modules\Tags\Engine\Model as FrontendTagsModel;
 
 use \Parsedown as Parsedown;
@@ -163,11 +164,8 @@ class Detail extends FrontendBaseBlock
         $this->addCSS('highlight-8.4/styles/github.css', false);
 
         // parse the post markdown
-        $pd = new Parsedown();
-        $pd->setBreaksEnabled(true);
-        $pd->setMarkupEscaped(true);
-//        $pd->setNoMarkup();
-        $this->record['text'] = $pd->text($this->record['text']);
+        $helper = new FrontendForumHelper();
+        $this->record['text'] = $helper->parseMarkdown($this->record['text'], 'default');
 
         $this->tpl->assign('record', $this->record);
         return;

@@ -84,7 +84,7 @@ jsFrontend.forum =
                 {
                     fork: { module: 'Forum', action: 'ParseMarkdown' },
                     text: $textElement.val(),
-                    type: 'github' // types are: 'default' or 'github'
+                    type: 'default' // types are: 'default' or 'github'
                 },
                 success: function(json, textStatus)
                 {

@@ -16,7 +16,122 @@ jsBackend.forum =
 
 		// do meta
 		if($title.length > 0) $title.doMeta();
-	}
+
+        // set the textarea id
+        jsBackend.forum.textElement = $('#text');
+        jsBackend.forum.previewElement = $('#preview');
+
+        // init libraries
+        jsBackend.forum.initHighlight();
+        jsBackend.forum.initPurify();
+        jsBackend.forum.initTaboverride(jsBackend.forum.textElement);
+
+        // bind preview event
+        jsBackend.forum.bindPreview(jsBackend.forum.textElement, jsBackend.forum.previewElement);
+	},
+
+    initHighlight: function() {
+
+        if (jsBackend.forum.highlight == null && typeof(hljs) !== 'undefined') {
+
+            // set instance
+            jsBackend.forum.highlight = hljs;
+
+            // set some highlight.js options
+            jsBackend.forum.highlight.configure({
+                tabReplace: '    ' // 4 spaces
+            });
+
+            // init highlight on page load
+            jsBackend.forum.highlight.initHighlightingOnLoad();
+        }
+    },
+
+    initTaboverride: function($textElement) {
+
+        if(jsBackend.forum.tabOverride == null  && typeof(tabOverride) !== 'undefined') {
+
+            // get instance
+            jsBackend.forum.tabOverride = tabOverride;
+
+            // options
+            jsBackend.forum.tabOverride.tabSize(4);
+            jsBackend.forum.tabOverride.autoIndent(true);
+            jsBackend.forum.tabOverride.set($textElement);
+        }
+    },
+
+    bindPreview: function($textElement, $previewElement) {
+        $previewButton = $('#preview-button');
+        $previewError = $('#preview-error');
+        $previewError.hide();
+        $previewElement.hide();
+
+        $previewButton.click(function(e) {
+            e.preventDefault();
+
+            // make the async parsedown call
+            $.ajax(
+                {
+                    data:
+                    {
+                        fork: { module: 'Forum', action: 'ParseMarkdown' },
+                        text: $textElement.val(),
+                        type: 'default' // types are: 'default' or 'github'
+                    },
+                    success: function(json, textStatus)
+                    {
+                        if(json.code != 200)
+                        {
+                            // show error if needed
+                            if(jsBackend.debug) alert(textStatus);
+
+                            // show error message
+                            $previewError.html(jsBackend.locale.msg('PreviewError'));
+                        }
+                        else
+                        {
+                            // get parsed data
+                            var parsed = json.data;
+
+                            // show preview
+                            $previewElement.html(parsed);
+
+                            // highlight code blocks
+                            $previewElement.find('pre code').each(function(i, code) {
+                                $(code).addClass('hljs');
+                                jsBackend.forum.highlight.highlightBlock( code );
+                            });
+
+                            // show preview
+                            $previewElement.show();
+
+                            // hide error message
+                            $previewError.hide();
+                        }
+                    },
+                    error: function(xhr, ajaxOptions, thrownError) {
+
+                        // set message
+                        $previewError.html(jsBackend.locale.msg('PreviewError'));
+
+                        // hide preview
+                        $previewElement.hide();
+
+                        // show error message
+                        $previewError.show();
+                    }
+
+                });
+        });
+    },
+
+    initPurify: function() {
+
+        if(jsBackend.forum.purify == null && typeof(DOMPurify) !== 'undefined') {
+            jsBackend.forum.purify = DOMPurify;
+        }
+    }
 };
 
 jsBackend.forum.controls =

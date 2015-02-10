@@ -42,15 +42,15 @@
                             <div class="tabs">
                                 <ul>
                                     <li><a href="#tabText">{$lblText|ucfirst}</a></li>
-                                    <li><a href="#tabPreview">{$lblPreview|ucfirst}</a></li>
+                                    <li><a id="preview-button" href="#tabPreview">{$lblPreview|ucfirst}</a></li>
                                 </ul>
 
                                 <div id="tabText">
                                     {$txtText} {$txtTextError}
                                 </div>
                                 <div id="tabPreview">
-                                    <div class="preview"></div>
-                                    <div class="preview-error"></div>
+                                    <div id="preview"></div>
+                                    <div id="preview-error"></div>
                                 </div>
                             </div>
 						</div>
@@ -192,7 +192,7 @@
 		{/option:showForumDelete}
 
 		<div class="buttonHolderRight">
-			<input id="editButton" class="inputButton button mainButton" type="submit" name="edit" value="{$lblPublish|ucfirst}" />
+			<input id="editButton" class="inputButton button mainButton" type="submit" name="edit" value="{$lblSave|ucfirst}" />
 		</div>
 	</div>
 
