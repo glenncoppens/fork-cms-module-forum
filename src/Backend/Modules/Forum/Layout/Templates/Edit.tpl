@@ -112,7 +112,7 @@
 							<div class="options">
 								<label for="profileId">{$lblAuthor|ucfirst}</label>
                                 <ul>
-                                    <li>{$item.profile.email}</li>
+                                    <li><a href="{$var|geturl:'edit':'profiles'}&amp;id={$item.profile.id}">{$item.profile.email}</a></li>
                                 </ul>
 
 							</div>
@@ -193,7 +193,6 @@
 
 		<div class="buttonHolderRight">
 			<input id="editButton" class="inputButton button mainButton" type="submit" name="edit" value="{$lblPublish|ucfirst}" />
-			<a href="#" id="saveAsDraft" class="inputButton button"><span>{$lblSaveDraft|ucfirst}</span></a>
 		</div>
 	</div>
 
