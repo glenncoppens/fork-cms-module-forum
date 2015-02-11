@@ -2,23 +2,15 @@
 
 namespace Backend\Modules\Forum\Widgets;
 
-/*
- * This file is part of Fork CMS.
- *
- * For the full copyright and license information, please view the license
- * file that was distributed with this source code.
- */
-
 use Backend\Core\Engine\Base\Widget as BackendBaseWidget;
 use Backend\Modules\Forum\Engine\Model as BackendForumModel;
 
 /**
- * This widget will show the latest comments
+ * This widget will show the latest forum comments
  *
- * @author Tijs Verkoyen <tijs@sumocoders.be>
- * @author Davy Hellemans <davy.hellemans@netlash.com>
+ * @author Glenn Coppens <glenn.coppens@gmail.com>
  */
-class Comments extends BackendBaseWidget
+class ForumComments extends BackendBaseWidget
 {
     /**
      * The comments
