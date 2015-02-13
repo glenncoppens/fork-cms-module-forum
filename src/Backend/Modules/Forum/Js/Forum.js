@@ -1,8 +1,7 @@
 /**
  * Interaction for the forum module
  *
- * @author	Tijs Verkoyen <tijs@sumocoders.be>
- * @author	Thomas Deceuninck <thomas@fronto.be>
+ * @author	Glenn Coppens <glenn.coppens@gmail.com>
  */
 jsBackend.forum =
 {
@@ -28,7 +27,19 @@ jsBackend.forum =
 
         // bind preview event
         jsBackend.forum.bindPreview(jsBackend.forum.textElement, jsBackend.forum.previewElement);
+
+        // load preview when page is refreshed on #tabPreview
+        jsBackend.forum.initPreviewTab();
 	},
+
+    initPreviewTab: function() {
+        var href = $('.ui-tabs-selected').find('a#preview-button').attr('href');
+        $previewButton = $('#preview-button');
+
+        if(href === '#tabPreview') {
+            $previewButton.trigger('click');
+        }
+    },
 
     initHighlight: function() {
 
@@ -64,11 +75,14 @@ jsBackend.forum =
     bindPreview: function($textElement, $previewElement) {
         $previewButton = $('#preview-button');
         $previewError = $('#preview-error');
-        $previewError.hide();
-        $previewElement.hide();
+
 
         $previewButton.click(function(e) {
             e.preventDefault();
+
+            // hide both by every click
+            $previewError.hide();
+            $previewElement.hide();
 
             // make the async parsedown call
             $.ajax(
@@ -105,18 +119,12 @@ jsBackend.forum =
 
                             // show preview
                             $previewElement.show();
-
-                            // hide error message
-                            $previewError.hide();
                         }
                     },
                     error: function(xhr, ajaxOptions, thrownError) {
 
                         // set message
                         $previewError.html(jsBackend.locale.msg('PreviewError'));
-
-                        // hide preview
-                        $previewElement.hide();
 
                         // show error message
                         $previewError.show();

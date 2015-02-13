@@ -1,10 +1,14 @@
 #text {
     width: 99.5% !important;
-    min-height: 300px;
+    min-height: 400px;
 }
 
 #preview {
-    width: 738px !important;
+    border: 1px solid lightgrey;
+    border-radius: 4px;
+    padding: 10px;
+    /*width: 738px !important;*/
     overflow-x: scroll;
-    min-height: 300px;
+    height: 400px;
+    resize: both;
 }
