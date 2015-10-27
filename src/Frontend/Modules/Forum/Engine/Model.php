@@ -68,6 +68,36 @@ class Model implements FrontendTagsInterface
     }
 
     /**
+     * Get an item
+     *
+     * @param string $URL The URL for the item.
+     * @return array
+     */
+    public static function getById($id)
+    {
+        $return = (array) FrontendModel::getContainer()->get('database')->getRecord(
+            'SELECT i.id, i.revision_id, i.title, i.text, i.url,
+             c.title AS category_title, m2.url AS category_url,
+             UNIX_TIMESTAMP(i.publish_on) AS publish_on, i.profile_id,
+             i.allow_comments
+             FROM forum_posts AS i
+             INNER JOIN forum_categories AS c ON i.category_id = c.id
+             INNER JOIN meta AS m2 ON c.meta_id = m2.id
+             WHERE i.status = ? AND i.hidden = ? AND i.publish_on <= ? AND i.id = ?
+             LIMIT 1',
+            array('active', 'N', FrontendModel::getUTCDate('Y-m-d H:i') . ':00', (string) $id)
+        );
+
+        // unserialize
+        if (isset($return['meta_data'])) {
+            $return['meta_data'] = @unserialize($return['meta_data']);
+        }
+
+        // return
+        return $return;
+    }
+
+    /**
      * Get all items (at least a chunk)
      *
      * @param int $limit  The number of items to get.

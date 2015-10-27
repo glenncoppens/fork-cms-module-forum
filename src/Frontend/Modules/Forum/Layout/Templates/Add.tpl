@@ -17,9 +17,9 @@
 						<label for="title">{$lblTitle|ucfirst}</label>
 						{$txtTitle} {$txtTitleError}
 					</p>
-					<p class="bigInput{option:txtPostError} errorArea{/option:txtPostError}">
-						<label for="post">{$lblPost|ucfirst}<abbr title="{$lblRequiredField}">*</abbr></label>
-						{$txtPost} {$txtPostError}
+					<p class="bigInput{option:txtTextError} errorArea{/option:txtTextError}">
+						<label for="text">{$lblText|ucfirst}<abbr title="{$lblRequiredField}">*</abbr></label>
+						{$txtText} {$txtTextError}
 					</p>
 					<p>
                         <a href="#" id="preview-button" class="btn">{$msgPreview|ucfirst}</a>&nbsp;

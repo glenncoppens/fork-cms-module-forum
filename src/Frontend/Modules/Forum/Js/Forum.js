@@ -25,7 +25,7 @@ jsFrontend.forum =
         }
 
         // set the textarea id
-        jsFrontend.forum.textElement = $('#post');
+        jsFrontend.forum.textElement = $('#text');
         jsFrontend.forum.previewElement = $('#preview');
 
         // init libraries

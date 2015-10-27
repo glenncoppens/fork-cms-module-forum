@@ -7,7 +7,11 @@
 *}
 
 <div>
-{$record.text}
+
+    <h1>{$record.title}</h1>
+
+    {$record.text}
+
 </div>
 {*
 <div id="forumDetail">
