@@ -9,11 +9,10 @@ namespace Frontend\Modules\Forum\Engine;
  */
 
 use Symfony\Component\Filesystem\Filesystem;
-
 use Frontend\Core\Engine\Theme as FrontendTheme;
 
-class Helper {
-
+class Helper
+{
     /**
      * Generate a correct path
      *
@@ -33,9 +32,10 @@ class Helper {
         $filePath = $themePath . $file;
 
         // check for existence
-        if($fs->exists((PATH_WWW . str_replace(PATH_WWW, '', $filePath)))) return $filePath;
+        if ($fs->exists((PATH_WWW . str_replace(PATH_WWW, '', $filePath)))) {
+            return $filePath;
+        }
 
         return '/src/Frontend/Modules/' . $module . '/Js' . $file;
     }
-
 }

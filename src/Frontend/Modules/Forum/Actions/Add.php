@@ -11,7 +11,6 @@ namespace Frontend\Modules\Forum\Actions;
 
 use Common\Cookie as CommonCookie;
 use Common\Uri as CommonUri;
-
 use Frontend\Core\Engine\Base\Block as FrontendBaseBlock;
 use Frontend\Core\Engine\Form as FrontendForm;
 use Frontend\Core\Engine\Language as FL;
@@ -21,7 +20,6 @@ use Frontend\Modules\Forum\Engine\Model as FrontendForumModel;
 use Frontend\Modules\Tags\Engine\Model as FrontendTagsModel;
 use Frontend\Modules\Profiles\Engine\Authentication as FrontendProfilesAuthentication;
 use Frontend\Modules\Forum\Engine\Helper as FrontendForumHelper;
-
 use \Parsedown as Parsedown;
 
 /**
@@ -53,10 +51,10 @@ class Add extends FrontendBaseBlock
     private $settings;
 
     /**
-	 * The profile
-	 *
-	 * @var FrontendProfilesProfile
-	 */
+     * The profile
+     *
+     * @var FrontendProfilesProfile
+     */
     private $profile;
 
 
@@ -65,16 +63,16 @@ class Add extends FrontendBaseBlock
      */
     public function execute()
     {
-    	// profile logged in
+        // profile logged in
         if (FrontendProfilesAuthentication::isLoggedIn()) {
-	        parent::execute();
-	        $this->tpl->assign('hideContentTitle', true);
-	        $this->loadTemplate();
-	        $this->getData();
-	        $this->loadForm();
-	        $this->validateForm();
-	        $this->parse();
-	    } else {
+            parent::execute();
+            $this->tpl->assign('hideContentTitle', true);
+            $this->loadTemplate();
+            $this->getData();
+            $this->loadForm();
+            $this->validateForm();
+            $this->parse();
+        } else {
             // profile not logged in
             $this->redirect(
                 FrontendNavigation::getURLForBlock(
@@ -84,7 +82,6 @@ class Add extends FrontendBaseBlock
                 307
             );
         }
-
     }
 
     /**
@@ -138,25 +135,25 @@ class Add extends FrontendBaseBlock
      */
     private function validateForm()
     {
-    	// form is submitted
-        if($this->frm->isSubmitted()) {
+        // form is submitted
+        if ($this->frm->isSubmitted()) {
 
-        	// ignore fields by hackers
-        	$this->frm->cleanupFields();
+            // ignore fields by hackers
+            $this->frm->cleanupFields();
 
-        	// get form fields
-        	$fields = $this->frm->getFields();
+            // get form fields
+            $fields = $this->frm->getFields();
 
-        	// title required
-        	$fields['title']->isFilled(FL::err('TitleIsRequired'));
-        	$fields['post']->isFilled(FL::err('PostIsRequired'));
+            // title required
+            $fields['title']->isFilled(FL::err('TitleIsRequired'));
+            $fields['post']->isFilled(FL::err('PostIsRequired'));
 
-        	// form is correct
-        	if($this->frm->isCorrect()) {
+            // form is correct
+            if ($this->frm->isCorrect()) {
 
-        		// create url
-        		$this->url = CommonUri::getUrl($fields['title']->getValue());
-        		$this->url = FrontendForumModel::getUniqueUrl($this->url);
+                // create url
+                $this->url = CommonUri::getUrl($fields['title']->getValue());
+                $this->url = FrontendForumModel::getUniqueUrl($this->url);
 
                 // parse markdown
                 $parsedown = new Parsedown();
@@ -164,26 +161,26 @@ class Add extends FrontendBaseBlock
                 $markdown = $parsedown->text($fields['post']->getValue());
 //                \Spoon::dump(\Spoonfilter::htmlentities($markdown));
 
-    			// create post item
-    			$post = array(
-    				'id' => FrontendForumModel::getMaximumId() + 1,
-    				'title' => $fields['title']->getValue(),
-    				'text' => $fields['post']->getValue(),
+                // create post item
+                $post = array(
+                    'id' => FrontendForumModel::getMaximumId() + 1,
+                    'title' => $fields['title']->getValue(),
+                    'text' => $fields['post']->getValue(),
 //                    'text' => \SpoonFilter::htmlentities($markdown),
-    				'profile_id' => $this->profile->getId(),
+                    'profile_id' => $this->profile->getId(),
                     'category_id' => 1,
-    				'url' => $this->url,
-    				'status' => 'active',
-    				'publish_on' => FrontendModel::getUTCDate(),
-    				'created_on' => FrontendModel::getUTCDate(),
-    				'edited_on' => FrontendModel::getUTCDate(),
-    				'hidden' => 'N',
-    				'allow_comments' => 'Y',
-    				'num_comments' => 0,
-				);
+                    'url' => $this->url,
+                    'status' => 'active',
+                    'publish_on' => FrontendModel::getUTCDate(),
+                    'created_on' => FrontendModel::getUTCDate(),
+                    'edited_on' => FrontendModel::getUTCDate(),
+                    'hidden' => 'N',
+                    'allow_comments' => 'Y',
+                    'num_comments' => 0,
+                );
 
-				// insert post
-				$post['revision_id'] = FrontendForumModel::insertPost($post);
+                // insert post
+                $post['revision_id'] = FrontendForumModel::insertPost($post);
 
                 $this->redirect(
                     FrontendNavigation::getURLForBlock(
@@ -191,12 +188,9 @@ class Add extends FrontendBaseBlock
                     'Index'
                 ));
 
-    			
+                
 //        		\Spoon::dump($post);
-        	}
-
-
-        	
+            }
         }
     }
 }

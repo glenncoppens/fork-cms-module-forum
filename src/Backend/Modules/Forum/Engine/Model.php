@@ -657,7 +657,6 @@ class Model
                 array(BL::getWorkingLanguage(), $URL, $id)
             )
             ) {
-
                 $URL = BackendModel::addNumber($URL);
 
                 return self::getURL($URL, $id);

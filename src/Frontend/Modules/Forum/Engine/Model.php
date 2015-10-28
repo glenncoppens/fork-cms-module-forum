@@ -1032,7 +1032,6 @@ class Model implements FrontendTagsInterface
                 array($URL, $id)
             )
             ) {
-
                 $URL = FrontendModel::addNumber($URL);
 
                 return self::getUniqueUrl($URL, $id);

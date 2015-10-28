@@ -10,7 +10,6 @@ namespace Backend\Modules\Forum\Actions;
  */
 
 use Symfony\Component\Filesystem\Filesystem;
-
 use Backend\Core\Engine\Base\ActionEdit as BackendBaseActionEdit;
 use Backend\Core\Engine\Exception;
 use Backend\Core\Engine\Model as BackendModel;
@@ -78,7 +77,7 @@ class ImportWordpress extends BackendBaseActionEdit
             if ($this->frm->getField('wordpress')->isFilled()) {
                 $this->frm->getField('wordpress')->isAllowedExtension(array('xml'), BL::err('XMLFilesOnly'));
             } else {
-                 // No file
+                // No file
                 $this->frm->getField('wordpress')->addError(BL::err('FieldIsRequired'));
             }
 
